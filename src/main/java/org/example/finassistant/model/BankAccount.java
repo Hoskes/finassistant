@@ -8,7 +8,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class bankAccount {
+public class BankAccount {
     @Id
     private long id;
     private String title;
