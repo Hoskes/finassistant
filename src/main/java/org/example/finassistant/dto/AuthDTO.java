@@ -1,17 +1,12 @@
 package org.example.finassistant.dto;
 
-import jakarta.persistence.Id;
 import lombok.*;
 
 @NoArgsConstructor
 @AllArgsConstructor
-
 @Getter
 @Setter
-public class UserDTO {
-    @Id
-    long id;
-    String name;
+public class AuthDTO {
     String email;
-    String role;
+    String password;
 }

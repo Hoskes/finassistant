@@ -8,7 +8,6 @@ import org.springframework.context.annotation.ComponentScan;
 public class FinassistantApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(FinassistantApplication.class, args);
-
 	}
 
 }
