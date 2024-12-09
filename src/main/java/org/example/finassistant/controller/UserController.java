@@ -27,11 +27,11 @@ public class UserController {
         return new ResponseEntity<>(userDTO,HttpStatus.OK);
     }
     @PostMapping(value = "/mock/auth")
-    public ResponseEntity<UserDTO> authUser(){
-//        User user = userService.authUser(email,password);
-//        System.out.println("#"+email+" "+password);
-        User user = userService.authUser("email@mail.ru","num1");
+    public ResponseEntity<UserDTO> mockAuthUser(@RequestBody AuthDTO dto){
+        System.out.println("#"+dto.toString());
+        User user = userService.authUser(dto.getEmail(),dto.getPassword());
         return new ResponseEntity<>(UserMapper.INSTANCE.userToDTO(user),HttpStatus.OK);
     }
+
 
 }
