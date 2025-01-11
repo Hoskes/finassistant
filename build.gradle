@@ -35,8 +35,26 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'org.mapstruct:mapstruct:1.5.2.Final'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.2.Final'
+	// https://mvnrepository.com/artifact/com.itextpdf/itextpdf
+	implementation group: 'com.itextpdf', name: 'itextpdf', version: '5.5.13.3'
+	//docx
+	implementation 'org.apache.poi:poi-ooxml:4.1.2'
+//  spring security
+	implementation "org.springframework.boot:spring-boot-starter-security"
+// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt
+	implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
+	implementation 'javax.xml.bind:jaxb-api:2.3.1'
+	implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
+// https://mvnrepository.com/artifact/org.jfree/jfreechart
+	implementation group: 'org.jfree', name: 'jfreechart', version: '1.5.4'
+
+	// https://mvnrepository.com/artifact/org.mindrot/jbcrypt
+	implementation group: 'org.mindrot', name: 'jbcrypt', version: '0.4'
+
+
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
+

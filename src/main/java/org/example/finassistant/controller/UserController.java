@@ -1,38 +1,38 @@
 package org.example.finassistant.controller;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import org.example.finassistant.dto.AuthDTO;
-import org.example.finassistant.dto.UserDTO;
-import org.example.finassistant.mapper.UserMapper;
 import org.example.finassistant.model.User;
 import org.example.finassistant.service.UserService;
+import org.example.finassistant.utils.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@AllArgsConstructor
-@NoArgsConstructor
+@RequestMapping("/api/users")
+@CrossOrigin(origins = "http://127.0.0.1:5501") // HC исправить настроечным файлом или глобальной конфигой
 public class UserController {
     @Autowired
     private UserService userService;
-    @GetMapping(value = "/mock")
-    public ResponseEntity<UserDTO> getMock(){
-        User user = userService.getUser();
-        UserDTO userDTO = UserMapper.INSTANCE.userToDTO(user);
-        return new ResponseEntity<>(userDTO,HttpStatus.OK);
-    }
-    @PostMapping(value = "/mock/auth")
-    public ResponseEntity<UserDTO> mockAuthUser(@RequestBody AuthDTO dto){
-        System.out.println("#"+dto.toString());
-        User user = userService.authUser(dto.getEmail(),dto.getPassword());
-        return new ResponseEntity<>(UserMapper.INSTANCE.userToDTO(user),HttpStatus.OK);
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody User user) {
+        // Проверяем, существует ли пользователь с таким же email
+        if (userService.findByEmail(user.getEmail()).isPresent()) {
+            return ResponseEntity.badRequest().body("User with this email already exists");
+        }
+        user.setPassword(PasswordHasher.hashPassword(user.getPassword()));
+        User savedUser = userService.save(user);
+        return ResponseEntity.ok(savedUser);
     }
 
-
+    @GetMapping("/{email}")
+    public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
+        return userService.findByEmail(email)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    @GetMapping("/login")
+    public String login(User model) {
+        return "login"; // Возвращает имя шаблона для страницы входа
+    }
 }

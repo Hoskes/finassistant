@@ -1,25 +1,42 @@
 package org.example.finassistant.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.example.finassistant.exception.DataNotFoundException;
 import org.example.finassistant.model.User;
 import org.example.finassistant.repository.UserRepository;
+import org.example.finassistant.utils.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public User getUser(){
-        User user = new User(1L,"email","Andrew","password","admin");
-        return user;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public User save(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword())); // Хешируем пароль
+        return userRepository.save(user);
     }
-    public User authUser(String email, String password){
-        return userRepository.findUserByEmailAndPassword(email,password).orElseThrow(() -> new DataNotFoundException("No user founded with data:"+email+" "+password));
+
+    public Optional<User> findByEmail(String email) {
+        return Optional.ofNullable(userRepository.findByEmail(email));
+    }
+
+    public Optional<User> findByID (Long id){
+        return Optional.of(userRepository.findById(id)).orElseThrow(() -> new DataNotFoundException("Invalid auth data"));
+    }
+    public long loginUser(String email, String password) {
+        User u = userRepository.findByEmail(email);
+        if (u.getPassword().equals(password)) {
+            return u.getId();
+        } else {
+            throw new AccessDeniedException("Acsess denied");
+        }
     }
 }

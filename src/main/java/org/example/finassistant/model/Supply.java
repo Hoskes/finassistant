@@ -1,9 +1,7 @@
 package org.example.finassistant.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.annotation.Nullable;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -22,6 +20,13 @@ public class Supply {
     private String title;
     private String description;
     private double price;
+    private int quantity;
     private LocalDateTime date_created;
     private LocalDateTime date_edited;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User author;
+    @ManyToOne
+    @JoinColumn(name = "tax_id")
+    private Tax tax;
 }
