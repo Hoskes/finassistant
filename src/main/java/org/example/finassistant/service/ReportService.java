@@ -74,7 +74,11 @@ public class ReportService {
         return l.stream().toList();
     }
     public Long nowDaySum(){
-        return transactionRepository.getDaySum();
+        Long a = transactionRepository.getDaySum();
+        if(a == null){
+            return 0l;
+        }
+        return a;
     }
     public List<NameCountDTO> getTopItems(){
         List<Object[]> obj = transactionRepository.getTop5Items();

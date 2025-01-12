@@ -14,7 +14,7 @@ public class TaxService {
     @Autowired
     private TaxRepository taxRepository;
     public Tax getCurrentTax(){
-        return Optional.of(taxRepository.findByActualIsTrue()).orElseThrow(() -> new DataNotFoundException("NO object in db"));
+        return Optional.of(taxRepository.findByActualIsTrue()).orElseThrow(() -> new DataNotFoundException("NO object with options in DB"));
     }
     @Transactional
     public String changeTax(Long id){

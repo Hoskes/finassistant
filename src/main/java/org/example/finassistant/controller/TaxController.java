@@ -15,7 +15,6 @@ public class TaxController {
     private TaxService taxService;
 
     @GetMapping(value = "/tax/get_current")
-    @CrossOrigin(origins = "http://127.0.0.1:5501") // HC исправить настроечным файлом или глобальной конфигой
     public Tax getCurrent(){
         return taxService.getCurrentTax();
     }

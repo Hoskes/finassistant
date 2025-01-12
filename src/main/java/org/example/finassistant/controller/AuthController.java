@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     @Autowired
-    private org.example.finassistant.security.JwtUtil jwtUtil;
+    private org.example.finassistant.utils.JwtUtil jwtUtil;
     @Autowired
     private UserService userService;
     @PostMapping("/auth/login")

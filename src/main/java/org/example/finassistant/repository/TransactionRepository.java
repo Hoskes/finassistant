@@ -15,8 +15,6 @@ import java.util.Optional;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    //    @Modifying
-//    @Query("SELECT Transaction from transaction WHERE date_created BETWEEN :startDate AND :finishDate")
     @Modifying
     @Query("SELECT t from Transaction t where t.date_created between :startDate And :finishDate")
     List<Transaction> getTransactionByDate_createdBetween(LocalDateTime startDate, LocalDateTime finishDate);
@@ -27,10 +25,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT SUM(t.quantity * i.price) FROM Transaction t JOIN t.payableItem i WHERE FUNCTION('DATE', t.date_created) = CURRENT_DATE")
     Long getDaySum();
 
-    // Пример запроса для получения количества транзакций за месяц
+    // Запрос для получения количества транзакций за месяц
     @Query("SELECT COUNT(t) FROM Transaction t WHERE MONTH(t.date_created) = :month AND FUNCTION('YEAR', t.date_created) = :year")
     Long getTransactionCountByMonth(@Param("month") int month, @Param("year") int year);
-    @Query("SELECT i.title, COUNT(t) AS count FROM Transaction t JOIN t.payableItem i GROUP BY i.id, i.title ORDER BY count DESC")
+    @Query("SELECT i.title, COUNT(t) AS count FROM Transaction t JOIN t.payableItem i GROUP BY i.id, i.title ORDER BY count DESC LIMIT 5")
     List<Object[]> getTop5Items();
 
     @Query(value = "SELECT SUM(t.quantity * i.price) FROM transaction t JOIN public.item i on i.id = t.item_id \n" +

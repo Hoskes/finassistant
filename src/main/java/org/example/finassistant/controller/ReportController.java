@@ -4,6 +4,7 @@ import org.example.finassistant.dto.NameCountDTO;
 import org.example.finassistant.model.Message;
 import org.example.finassistant.model.Period;
 import org.example.finassistant.service.ReportService;
+import org.example.finassistant.utils.ChartGenerator;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
@@ -37,13 +38,7 @@ public class ReportController {
                          @RequestParam(name = "period") Period period,
                          HttpServletResponse response) throws IOException {
         Map<LocalDate, BigDecimal[]> reportData = reportService.getDualChart(startDate, endDate, period);
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        for (Map.Entry<LocalDate, BigDecimal[]> entry : reportData.entrySet()) {
-            dataset.addValue(entry.getValue()[0], "Закупки", entry.getKey());
-            dataset.addValue(entry.getValue()[1], "Продажи", entry.getKey());
-        }
-        JFreeChart chart = ChartFactory.createBarChart("Сравнительная характеристика доходов/расходов", "Период", "Сумма", dataset, PlotOrientation.VERTICAL, true, true, false);
-        chart.setBorderPaint(Color.WHITE);
+        JFreeChart chart = ChartGenerator.generateChart(reportData);
         response.setContentType("image/png");
         response.setHeader("Content-Disposition", "attachment; filename=\"chart.png\"");
         ChartUtils.writeChartAsPNG(response.getOutputStream(), chart, 1920, 1080);

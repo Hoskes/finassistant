@@ -24,7 +24,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 // хард код переписать
-public class GeneratePdfReport {
+public class GeneratePdfReport{
+
     public static ByteArrayInputStream suppliesReport(List<Supply> supplies,LocalDateTime startDate,LocalDateTime endDate) {
 
         Document document = new Document();
