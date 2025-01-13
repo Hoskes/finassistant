@@ -1,32 +1,25 @@
 package org.example.finassistant.utils;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public class PasswordHasher {
     private static final String STATIC_SALT = "my_static_salt"; // Статическая соль
 
-    // Статический метод для хэширования пароля
+    // Метод для хэширования пароля
     public static String hashPassword(String password) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            // Комбинируем пароль и статическую соль
-            String saltedPassword = password + STATIC_SALT;
-            byte[] hashedBytes = md.digest(saltedPassword.getBytes());
-            StringBuilder sb = new StringBuilder();
-            for (byte b : hashedBytes) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Ошибка при хэшировании пароля", e);
-        }
+        // Комбинируем пароль и статическую соль
+        String saltedPassword = password + STATIC_SALT;
+        // Хэшируем с помощью BCrypt
+        return BCrypt.hashpw(saltedPassword, BCrypt.gensalt());
     }
 
-    // Статический метод для проверки пароля
+    // Метод для проверки пароля
     public static boolean checkPassword(String password, String hashed) {
-        String hashedInput = hashPassword(password);
-        return hashedInput.equals(hashed);
+        // Комбинируем пароль и статическую соль
+        String saltedPassword = password + STATIC_SALT;
+        // Проверяем, соответствует ли хэш
+        return BCrypt.checkpw(saltedPassword, hashed);
     }
 
     // Пример использования

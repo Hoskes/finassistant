@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     User findByEmail(String email);
+    User findUserByEmail(String email);
     User findUserByEmailAndPassword(String email,String password);
     @Query("SELECT u.name as name, e.count as count FROM ( " +
             "SELECT t.author.id AS userId, COUNT(t.author.id) AS count " +
@@ -18,5 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "GROUP BY t.author.id) AS e " +
             "JOIN User u ON e.userId = u.id")
     List<Object[]> findUserTransactionCounts();
+    List<User> findUserByPassword(String password);
 }
 

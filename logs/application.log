@@ -1,0 +1,5 @@
+2025-01-14T01:27:21.648+03:00  INFO 32888 --- [finassistant] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-01-14T01:27:21.835+03:00  INFO 32888 --- [finassistant] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-01-14T01:27:21.869+03:00  INFO 32888 --- [finassistant] [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-01-14T01:27:21.920+03:00  INFO 32888 --- [finassistant] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-01-14T01:27:21.931+03:00  INFO 32888 --- [finassistant] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

@@ -1,5 +1,8 @@
 package org.example.finassistant.controller;
 
+import lombok.extern.slf4j.Slf4j;
+import org.example.finassistant.exception.DataNotFoundException;
+import org.example.finassistant.model.Message;
 import org.example.finassistant.model.User;
 import org.example.finassistant.service.UserService;
 import org.example.finassistant.utils.PasswordHasher;
@@ -7,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "http://127.0.0.1:5501") // HC исправить настроечным файлом или глобальной конфигой
@@ -22,7 +27,8 @@ public class UserController {
         }
         user.setPassword(PasswordHasher.hashPassword(user.getPassword()));
         User savedUser = userService.save(user);
-        return ResponseEntity.ok(savedUser);
+        log.info("### Пользователь "+savedUser.getName()+" зарегистрирован");
+        return ResponseEntity.ok(savedUser.getId());
     }
 
     @GetMapping("/{email}")
@@ -31,8 +37,16 @@ public class UserController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    @GetMapping("/login")
-    public String login(User model) {
-        return "login"; // Возвращает имя шаблона для страницы входа
+    @PostMapping("/login")
+    public Message login(@RequestBody User model) {
+        User u = userService.findByEmail(model.getEmail()).orElseThrow(()->new DataNotFoundException("Wrong user email"));
+        System.out.println(u.getPassword());
+        if(PasswordHasher.checkPassword(model.getPassword(),u.getPassword())){
+            log.info("### Пользователь "+u.getName()+" зашел в систему");
+            return new Message(u.getId()+"");
+        }else {
+            return new Message("NOT OK");
+        }
     }
+
 }

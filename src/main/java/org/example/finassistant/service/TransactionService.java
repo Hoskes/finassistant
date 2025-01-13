@@ -1,28 +1,30 @@
 package org.example.finassistant.service;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.finassistant.exception.DataNotFoundException;
-import org.example.finassistant.model.Item;
-import org.example.finassistant.model.Tax;
-import org.example.finassistant.model.Transaction;
-import org.example.finassistant.model.User;
+import org.example.finassistant.model.*;
 import org.example.finassistant.repository.TaxRepository;
 import org.example.finassistant.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-
+@Slf4j
 @Service
 public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
     @Autowired
     private TaxRepository taxRepository;
+
     public Transaction getTransactionById(Long id) {
         Transaction tr = transactionRepository.findById(id).orElseThrow(() -> new DataNotFoundException("No Transaction found"));
         tr.getAuthor().setPassword("");
@@ -32,7 +34,7 @@ public class TransactionService {
 
     public List<Transaction> getAll() {
         List<Transaction> t = transactionRepository.findAll();
-        for (Transaction tr:t){
+        for (Transaction tr : t) {
             tr.getAuthor().setPassword("");
             tr.getAuthor().setEmail("");
         }
@@ -43,29 +45,23 @@ public class TransactionService {
     public Transaction addRow(Transaction t) {
         Transaction t1 = new Transaction();
         LocalDateTime l = LocalDateTime.now();
-
         User author = new User();
         author.setId(t.getAuthor().getId());
         t1.setAuthor(author);
-
-
-//        Tax tax = taxRepository.findById(t.getTax().getId()).orElseThrow(() -> new DataNotFoundException("Tax not found"));
         Tax tax = taxRepository.findByActualIsTrue();
         t1.setTax(tax);
-
         t1.setQuantity(t.getQuantity());
         t1.setDate_created(l);
         t1.setDate_edited(l);
         Item i = new Item();
         i.setId(t.getPayableItem().getId());
         t1.setPayableItem(i);
-
-        System.out.println("#"+t1.getTax().getId());
+        log.info("### Пользователь №"+author.getId()+" создал новую транзакцию");
         return transactionRepository.save(t1);
     }
 
     public Transaction editTransaction(Transaction t) {
-        if(t.getId()==null){
+        if (t.getId() == null) {
             throw new DataNotFoundException("Missing id statement");
         }
         Transaction oldT = transactionRepository.findById(t.getId()).orElseThrow(() -> new DataNotFoundException("No Data Found"));
@@ -74,14 +70,14 @@ public class TransactionService {
         }
         LocalDateTime l = LocalDateTime.now();
         oldT.setDate_edited(l);
-        if (!(t.getTax()==null)) {
+        if (!(t.getTax() == null)) {
             oldT.setTax(t.getTax());
         }
         if (t.getAuthor() != null) {
             if (t.getAuthor().getId() != null) {
                 User author = User.builder().id(t.getId()).build();
                 oldT.setAuthor(author);
-            }else{
+            } else {
                 throw new DataNotFoundException("Bad author ID");
             }
         }
@@ -89,15 +85,23 @@ public class TransactionService {
             if (t.getPayableItem().getId() != null) {
                 Item i = Item.builder().id(t.getPayableItem().getId()).build();
                 oldT.setPayableItem(i);
-            }else{
+            } else {
                 throw new DataNotFoundException("Bad item ID");
             }
         }
+        log.info("### Пользователь №"+oldT.getAuthor().getId()+" создал новую транзакцию");
         return transactionRepository.saveAndFlush(oldT);
     }
-    public String delete(Long id){
+
+    public String delete(Long id) {
         Transaction tr = transactionRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Transaction not found"));
         transactionRepository.delete(tr);
+        log.info("### Транзакция  №"+tr.getId()+"удалена");
         return "Object deleted";
     }
+
+    public List<Transaction> getAllBetween(LocalDateTime start, LocalDateTime end) {
+        return transactionRepository.getTransactionsByDate_createdBetween(start, end);
+    }
+
 }

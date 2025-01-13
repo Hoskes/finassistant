@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -92,9 +93,9 @@ public class ReportService {
         Long pros = transactionRepository.getQuartalPros();
         Long cons = supplyRepository.getQuartalCons();
         Tax t= taxRepository.findByActualIsTrue();
-        if(t.getTitle().equals("Упрощенное \"Доходы\"")){
+        if(t.getId()==1){
             return pros*0.01*t.getPersentage();
-        } else if (t.getTitle().equals("Упрощенное \"Доходы+Расходы\"")) {
+        } else if (t.getId()==2) {
             return (pros-cons)*0.01*t.getPersentage();
         }
         throw  new DataNotFoundException("Ошибка в налоговой ставке");
@@ -107,5 +108,21 @@ public class ReportService {
     }
     public Double getProfit(){
         return getPros()-getCons()-getTaxes();
+    }
+
+    public Map<LocalDate, Long> getLinearData(Period period,LocalDateTime dateStart,LocalDateTime dateEnd){
+        String sPeriod = "";
+        switch (period){
+            case DAY -> sPeriod="day";
+            case MONTH -> sPeriod="month";
+            case YEAR -> sPeriod="year";
+            case null, default -> throw new DataNotFoundException("Illegal Argument");
+        }
+        List<Object[]> list = transactionRepository.getLinearChartDataWithDate(sPeriod,dateStart,dateEnd);
+        Map<LocalDate,Long> map = new HashMap<>();
+        for (Object[] o:list){
+            map.put((Timestamp.valueOf(o[0].toString()).toLocalDateTime().toLocalDate()),Long.parseLong(o[1].toString()));
+        }
+        return map;
     }
 }

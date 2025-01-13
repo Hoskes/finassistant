@@ -11,6 +11,11 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -71,5 +77,20 @@ public class ReportController {
     @GetMapping(value = "/cur_profit")
     public Message getProfit(){
         return Message.builder().message(reportService.getProfit().toString()).build();
+    }
+    @GetMapping("/sales/chart")
+    public ResponseEntity<byte[]> generateChart(@RequestParam(name = "period") Period period,
+                                                @RequestParam(name = "startDate") LocalDateTime startDate,
+                                                @RequestParam(name = "endDate") LocalDateTime endDate) {
+        Map<LocalDate,Long> reportData = reportService.getLinearData(period,startDate,endDate);
+        try {
+            byte[] chartBytes = ChartGenerator.generateLinearChart(reportData);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Type", "image/png");
+            return new ResponseEntity<>(chartBytes, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

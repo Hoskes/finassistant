@@ -9,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,14 +21,15 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     public User save(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword())); // Хешируем пароль
         return userRepository.save(user);
     }
 
     public Optional<User> findByEmail(String email) {
         return Optional.ofNullable(userRepository.findByEmail(email));
     }
-
+    public Optional<User> findUserByEmail(String email) {
+        return Optional.ofNullable(userRepository.findByEmail(email));
+    }
     public Optional<User> findByID (Long id){
         return Optional.of(userRepository.findById(id)).orElseThrow(() -> new DataNotFoundException("Invalid auth data"));
     }
@@ -38,5 +40,8 @@ public class UserService {
         } else {
             throw new AccessDeniedException("Acsess denied");
         }
+    }
+    public List<User> updatePasswords(String password){
+        return userRepository.findUserByPassword(password);
     }
 }

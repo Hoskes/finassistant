@@ -3,12 +3,16 @@ package org.example.finassistant.utils;
 import org.apache.poi.xwpf.usermodel.*;
 import org.example.finassistant.model.Item;
 import org.example.finassistant.model.Supply;
+import org.example.finassistant.model.Transaction;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -89,6 +93,92 @@ public class GenerateDocxReport {
 
         return new ByteArrayInputStream(out.toByteArray());
     }
+    public static ByteArrayInputStream transactionReportDocx(List<Transaction> transactions, LocalDateTime startDate,LocalDateTime endDate) {
+        XWPFDocument document = new XWPFDocument();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        DecimalFormat decimalFormat = new DecimalFormat("####.##");
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yy");
+        try {
+            // Заголовок
+            XWPFParagraph titleParagraph = document.createParagraph();
+            XWPFRun titleRun = titleParagraph.createRun();
+            titleRun.setText("Отчет по транзакциям за период "+f.format(startDate)+" - "+f.format(endDate));
+            titleRun.setBold(true);
+            titleRun.setFontSize(20);
+
+            XWPFParagraph titleIndent = document.createParagraph();
+            XWPFRun titleRun2 = titleIndent.createRun();
+            titleRun2.setText("\n\n");
+            titleRun2.setBold(true);
+            titleRun2.setFontSize(20);
+
+            // Создание таблицы
+            XWPFTable table = document.createTable(transactions.size() + 1, 7);
+            table.setWidth("90%");
+
+            // Заголовки таблицы
+            String[] headers = {"ID", "Автор", "Товар", "Дата создания", "Цена (руб.)", "Количество", "Сумма (руб.)"};
+            XWPFTableRow headerRow = table.getRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                headerRow.getCell(i).setText(headers[i]);
+            }
+
+            long sum = 0;
+            int avgQuantity = 0;
+            long avgPrice = 0;
+            HashMap<String,Integer> mostOperator= new HashMap<>();
+
+            // Добавление данных в таблицу
+            for (int i = 0; i < transactions.size(); i++) {
+                Transaction transaction = transactions.get(i);
+                XWPFTableRow row = table.getRow(i + 1);
+                row.getCell(0).setText(transaction.getId().toString());
+                row.getCell(1).setText(transaction.getAuthor().getName());
+                row.getCell(2).setText(transaction.getPayableItem().getTitle());
+                row.getCell(3).setText(transaction.getDate_created().toString());
+                row.getCell(4).setText(decimalFormat.format(transaction.getPayableItem().getPrice()));
+                row.getCell(5).setText(decimalFormat.format(transaction.getQuantity()));
+                long totalPrice = (long) (transaction.getQuantity() * transaction.getPayableItem().getPrice());
+                row.getCell(6).setText(decimalFormat.format(totalPrice));
+
+                sum += totalPrice;
+                avgQuantity += transaction.getQuantity();
+                avgPrice += transaction.getPayableItem().getPrice();
+                mostOperator.merge(transaction.getAuthor().getName(),1,Integer::sum);
+            }
+            String operator ="";
+            int max = 0;
+            for (Map.Entry<String, Integer> entry : mostOperator.entrySet()) {
+                if (entry.getValue()>=max) {
+                    max = entry.getValue();
+                    operator = entry.getKey();
+                }
+            }
+            // Итоги
+            XWPFParagraph itogParagraph = document.createParagraph();
+            itogParagraph.createRun().setText("Итого: " + decimalFormat.format(sum) + " руб.");
+            XWPFParagraph avgPriceParagraph = document.createParagraph();
+            avgPriceParagraph.createRun().setText("Средняя цена: " + decimalFormat.format(avgPrice / transactions.size()) + " руб.");
+            XWPFParagraph mostOperatorParagraph = document.createParagraph();
+            mostOperatorParagraph.createRun().setText("Лучший оператор: " + operator);
+            XWPFParagraph mostQuantityParagraph = document.createParagraph();
+            mostQuantityParagraph.createRun().setText("Лучшее количество продаж оператором за период: " + max);
+
+            XWPFParagraph dateParagraph = document.createParagraph();
+            dateParagraph.setAlignment(ParagraphAlignment.RIGHT);
+
+            dateParagraph.createRun().setText("Дата: " + LocalDateTime.now().toLocalDate());
+
+            document.write(out);
+            document.close();
+
+        } catch (Exception ex) {
+            Logger.getLogger(GenerateDocxReport.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return new ByteArrayInputStream(out.toByteArray());
+    }
+
 
     public static ByteArrayInputStream itemsReport(List<Item> items) {
         XWPFDocument document = new XWPFDocument();
@@ -142,6 +232,7 @@ public class GenerateDocxReport {
             // Добавление даты
             XWPFParagraph dateParagraph = document.createParagraph();
             dateParagraph.setAlignment(ParagraphAlignment.RIGHT);
+            DateTimeFormatter f = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yy");
             dateParagraph.createRun().setText("Дата: " + LocalDateTime.now().toLocalDate());
 
             // Запись документа

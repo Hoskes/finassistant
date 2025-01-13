@@ -1,5 +1,6 @@
 package org.example.finassistant.repository;
 
+import org.example.finassistant.model.Period;
 import org.example.finassistant.model.Supply;
 import org.example.finassistant.model.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,4 +38,39 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             nativeQuery = true)
     Long getQuartalPros();
 
+
+    @Query("SELECT s from Transaction s where s.date_created between :startDate And :finishDate")
+    List<Transaction> getTransactionsByDate_createdBetween(LocalDateTime startDate, LocalDateTime finishDate);
+
+
+    @Query(value = "SELECT\n" +
+            "    CASE\n" +
+            "        WHEN :group_by = 'day' THEN date_created::DATE\n" +
+            "        WHEN :group_by = 'month' THEN DATE_TRUNC('month', date_created)\n" +
+            "        WHEN :group_by = 'year' THEN DATE_TRUNC('year', date_created)\n" +
+            "        END AS grouped_date,\n" +
+            "    SUM(quantity) AS total_quantity\n" +
+            "FROM\n" +
+            "    transaction\n" +
+            "GROUP BY\n" +
+            "    grouped_date\n" +
+            "ORDER BY\n" +
+            "    grouped_date;",nativeQuery = true)
+    List<Object[]> getLinearChartData(String group_by);
+
+    @Query(value = "SELECT\n" +
+            "    CASE\n" +
+            "        WHEN :group_by = 'day' THEN date_created::DATE\n" +
+            "        WHEN :group_by = 'month' THEN DATE_TRUNC('month', date_created)\n" +
+            "        WHEN :group_by = 'year' THEN DATE_TRUNC('year', date_created)\n" +
+            "        END AS grouped_date,\n" +
+            "    SUM(quantity) AS total_quantity\n" +
+            "FROM\n" +
+            "    (SELECT * FROM transaction\n" +
+            "     WHERE public.transaction.date_created::date  BETWEEN :dateStart AND :dateEnd) transaction\n" +
+            "GROUP BY\n" +
+            "    grouped_date\n" +
+            "ORDER BY\n" +
+            "    grouped_date;",nativeQuery = true)
+    List<Object[]> getLinearChartDataWithDate(String group_by,LocalDateTime dateStart,LocalDateTime dateEnd);
 }

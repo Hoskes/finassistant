@@ -1,7 +1,9 @@
 package org.example.finassistant.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.finassistant.exception.AcsessForbiddenException;
 import org.example.finassistant.model.AuthRequest;
+import org.example.finassistant.model.Message;
 import org.example.finassistant.model.User;
 import org.example.finassistant.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+
 @RestController
 public class AuthController {
 
@@ -21,9 +24,10 @@ public class AuthController {
     private UserService userService;
     @PostMapping("/auth/login")
     @CrossOrigin(origins = "http://127.0.0.1:5501") // HC исправить настроечным файлом или глобальной конфигой
-    public ResponseEntity<Long> login(@RequestBody AuthRequest authRequest) {
+    public Message login(@RequestBody AuthRequest authRequest) {
         Long id = userService.loginUser(authRequest.getUsername(),authRequest.getPassword());
-        return new ResponseEntity<>(id, HttpStatus.OK);
+
+        return Message.builder().message(id+"").build();
     }
     @PostMapping(value = "/auth/check")
     public ResponseEntity<String> checkData(@RequestBody Long id){
