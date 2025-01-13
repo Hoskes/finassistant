@@ -1,42 +1,42 @@
 package org.example.finassistant.service;
 
-import org.example.finassistant.exception.DataNotFoundException;
+
 import org.example.finassistant.model.User;
 import org.example.finassistant.repository.UserRepository;
-import org.example.finassistant.utils.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
-    public User save(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword())); // Хешируем пароль
+    public User registerUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
-    public Optional<User> findByEmail(String email) {
-        return Optional.ofNullable(userRepository.findByEmail(email));
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
     }
 
-    public Optional<User> findByID (Long id){
-        return Optional.of(userRepository.findById(id)).orElseThrow(() -> new DataNotFoundException("Invalid auth data"));
-    }
-    public long loginUser(String email, String password) {
-        User u = userRepository.findByEmail(email);
-        if (u.getPassword().equals(password)) {
-            return u.getId();
-        } else {
-            throw new AccessDeniedException("Acsess denied");
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = findByEmail(email);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found with email: " + email);
         }
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getEmail())
+                .password(user.getPassword())
+                .roles(user.getRole())
+                .build();
     }
 }
