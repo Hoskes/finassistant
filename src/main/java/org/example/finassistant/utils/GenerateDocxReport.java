@@ -37,12 +37,13 @@ public class GenerateDocxReport {
             descriptionRun.setFontSize(12);
             descriptionRun.addBreak();
 
+            String[] headers = {"ID", "Название", "Описание", "Цена (руб.)", "Кол-во", "Сумма (руб.)"};
             // Создание таблицы
-            XWPFTable table = document.createTable(supplies.size() + 1, 6);
+            XWPFTable table = document.createTable(supplies.size() + 1, headers.length);
             table.setWidth("90%");
 
             // Заголовки таблицы
-            String[] headers = {"ID", "Название", "Описание", "Цена (руб.)", "Кол-во", "Сумма (руб.)"};
+
             XWPFTableRow headerRow = table.getRow(0);
             for (int i = 0; i < headers.length; i++) {
                 headerRow.getCell(i).setText(headers[i]);
@@ -200,19 +201,17 @@ public class GenerateDocxReport {
             descriptionRun.setFontSize(12);
             descriptionRun.addBreak();
 
+            // Заголовки таблицы
+            String[] headers = {"ID", "Название", "Описание", "Цена (руб.)","Удален"};
             // Создание таблицы
-            XWPFTable table = document.createTable(items.size() + 1, 4);
+            XWPFTable table = document.createTable(items.size() + 1, headers.length);
             table.setWidth("90%");
 
-            // Заголовки таблицы
-            String[] headers = {"ID", "Название", "Описание", "Цена (руб.)"};
             XWPFTableRow headerRow = table.getRow(0);
             for (int i = 0; i < headers.length; i++) {
                 headerRow.getCell(i).setText(headers[i]);
             }
-
             double totalPrice = 0;
-
             // Добавление данных в таблицу
             for (int i = 0; i < items.size(); i++) {
                 Item item = items.get(i);
@@ -221,7 +220,11 @@ public class GenerateDocxReport {
                 row.getCell(1).setText(item.getTitle());
                 row.getCell(2).setText(item.getDescription());
                 row.getCell(3).setText(decimalFormat.format(item.getPrice()));
-
+                String sd="Нет";
+                if(item.getDeleted()){
+                    sd = "Да";
+                }
+                row.getCell(4).setText(sd);
                 totalPrice += item.getPrice();
             }
 

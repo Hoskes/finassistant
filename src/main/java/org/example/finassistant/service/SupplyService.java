@@ -1,5 +1,6 @@
 package org.example.finassistant.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.finassistant.dto.SupplyDTO;
 import org.example.finassistant.exception.DataNotFoundException;
 import org.example.finassistant.mapper.SupplyMapper;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class SupplyService {
     @Autowired
     private SupplyRepository supplyRepository;
@@ -29,7 +31,9 @@ public class SupplyService {
                 s.setDate_created(l);
                 s.setDate_edited(l);
         System.out.println(s.getId());
-        return supplyRepository.save(s);
+        Supply z = supplyRepository.save(s);
+        log.info("# Запись о закупке №"+z.getId()+" создана оператором №"+z.getAuthor().getId());
+        return z;
     }
     @Transactional
     public Supply editSupply(Supply s){
@@ -54,12 +58,15 @@ public class SupplyService {
             oldSupply.setQuantity(s.getQuantity());
             oldSupply.setDate_created(l);
         }
-        return supplyRepository.saveAndFlush(oldSupply);
+        Supply z = supplyRepository.saveAndFlush(oldSupply);
+        log.info("# Запись о закупке "+z.getId()+" изменена оператором №"+z.getAuthor().getId());
+        return z;
     }
     @Transactional
     public String deleteSupply(Supply supply){
         Supply s = supplyRepository.findById(supply.getId()).orElseThrow(()->new DataNotFoundException("No Data founded"));
         supplyRepository.delete(s);
+        log.info("# Запись о закупке "+s.getId()+" удалена пользователем №"+supply.getAuthor().getId());
         return "Object deleted";
     }
 

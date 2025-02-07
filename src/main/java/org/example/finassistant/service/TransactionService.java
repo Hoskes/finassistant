@@ -2,10 +2,13 @@ package org.example.finassistant.service;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.example.finassistant.dto.TransactionDTO;
+import org.example.finassistant.exception.AcsessForbiddenException;
 import org.example.finassistant.exception.DataNotFoundException;
 import org.example.finassistant.model.*;
 import org.example.finassistant.repository.TaxRepository;
 import org.example.finassistant.repository.TransactionRepository;
+import org.example.finassistant.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -24,7 +28,8 @@ public class TransactionService {
     private TransactionRepository transactionRepository;
     @Autowired
     private TaxRepository taxRepository;
-
+    @Autowired
+    private UserRepository userRepository;
     public Transaction getTransactionById(Long id) {
         Transaction tr = transactionRepository.findById(id).orElseThrow(() -> new DataNotFoundException("No Transaction found"));
         tr.getAuthor().setPassword("");
@@ -45,8 +50,7 @@ public class TransactionService {
     public Transaction addRow(Transaction t) {
         Transaction t1 = new Transaction();
         LocalDateTime l = LocalDateTime.now();
-        User author = new User();
-        author.setId(t.getAuthor().getId());
+        User author = userRepository.findById(t.getAuthor().getId()).orElseThrow(()->new AcsessForbiddenException("Invalid User"));
         t1.setAuthor(author);
         Tax tax = taxRepository.findByActualIsTrue();
         t1.setTax(tax);
@@ -75,7 +79,7 @@ public class TransactionService {
         }
         if (t.getAuthor() != null) {
             if (t.getAuthor().getId() != null) {
-                User author = User.builder().id(t.getId()).build();
+                User author = userRepository.findById(t.getAuthor().getId()).orElseThrow(()->new AcsessForbiddenException("Invalid User"));
                 oldT.setAuthor(author);
             } else {
                 throw new DataNotFoundException("Bad author ID");
@@ -89,19 +93,22 @@ public class TransactionService {
                 throw new DataNotFoundException("Bad item ID");
             }
         }
+
         log.info("### Пользователь №"+oldT.getAuthor().getId()+" создал новую транзакцию");
         return transactionRepository.saveAndFlush(oldT);
     }
 
-    public String delete(Long id) {
-        Transaction tr = transactionRepository.findById(id).orElseThrow(() -> new DataNotFoundException("Transaction not found"));
+    public String delete(TransactionDTO transaction) {
+        Transaction tr = transactionRepository.findById(transaction.getId()).orElseThrow(() -> new DataNotFoundException("Transaction not found"));
+        log.info("######");
         transactionRepository.delete(tr);
-        log.info("### Транзакция  №"+tr.getId()+"удалена");
+        log.info("### Транзакция  №"+tr.getId()+"удалена пользователем №"+transaction.getAuthor());
         return "Object deleted";
     }
 
     public List<Transaction> getAllBetween(LocalDateTime start, LocalDateTime end) {
         return transactionRepository.getTransactionsByDate_createdBetween(start, end);
     }
+
 
 }

@@ -51,7 +51,6 @@ public class ChartGenerator {
         for (Map.Entry<LocalDate, Long> entry : reportData.entrySet()) {
             LocalDate date = entry.getKey();
             Long totalSold = entry.getValue();
-            // Добавляем данные в TimeSeries
             series.add(new Second(java.sql.Timestamp.valueOf(date.atStartOfDay())), totalSold.doubleValue());
         }
 

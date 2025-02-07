@@ -1,6 +1,7 @@
 package org.example.finassistant.model;
 
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,5 +22,5 @@ public class Item {
     private String title;
     private String description;
     private double price;
-
+    private Boolean deleted;
 }

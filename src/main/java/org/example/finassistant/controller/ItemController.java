@@ -1,5 +1,7 @@
 package org.example.finassistant.controller;
 
+import lombok.extern.slf4j.Slf4j;
+import org.example.finassistant.dto.DeleteResponseMessage;
 import org.example.finassistant.dto.ItemDTO;
 import org.example.finassistant.model.Item;
 import org.example.finassistant.model.Item;
@@ -19,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
-
+@Slf4j
 @RestController
 @CrossOrigin(origins = "http://127.0.0.1:5501") // HC исправить настроечным файлом или глобальной конфигой
 public class ItemController {
@@ -43,8 +45,9 @@ public class ItemController {
 
     }
     @DeleteMapping(value = "/item/delete")
-    public ResponseEntity<String> deleteItem(@RequestBody Item item){
-        return new ResponseEntity<>(itemService.deleteItem(item), HttpStatus.OK);
+    public DeleteResponseMessage deleteItem(@RequestBody Item item){
+
+        return new DeleteResponseMessage(itemService.deleteItem(item));
     }
     @RequestMapping(value = "/item/pdf_report", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_PDF_VALUE)

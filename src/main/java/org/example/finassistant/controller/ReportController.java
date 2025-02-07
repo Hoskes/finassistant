@@ -1,5 +1,6 @@
 package org.example.finassistant.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.finassistant.dto.NameCountDTO;
 import org.example.finassistant.model.Message;
 import org.example.finassistant.model.Period;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@Slf4j
 @CrossOrigin(origins = "http://127.0.0.1:5501") // HC исправить настроечным файлом или глобальной конфигой
 public class ReportController {
     @Autowired
@@ -87,6 +89,7 @@ public class ReportController {
             byte[] chartBytes = ChartGenerator.generateLinearChart(reportData);
             HttpHeaders headers = new HttpHeaders();
             headers.add("Content-Type", "image/png");
+            log.info("Линейный график за "+startDate+" "+startDate+" "+endDate+" сформирован");
             return new ResponseEntity<>(chartBytes, headers, HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();

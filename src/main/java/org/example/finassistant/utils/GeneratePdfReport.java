@@ -190,9 +190,9 @@ public class GeneratePdfReport{
             document.add(new Paragraph("\n"));
 
             // Создание таблицы
-            PdfPTable table = new PdfPTable(4);
+            PdfPTable table = new PdfPTable(5);
             table.setWidthPercentage(90);
-            table.setWidths(new int[]{1, 2, 4, 2});
+            table.setWidths(new int[]{1, 2, 4, 2,2});
 
             Font headFont = FontFactory.getFont("./static/arial.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
             PdfPCell hcell;
@@ -214,6 +214,9 @@ public class GeneratePdfReport{
             hcell.setHorizontalAlignment(Element.ALIGN_CENTER);
             table.addCell(hcell);
 
+            hcell = new PdfPCell(new Phrase("Удален", headFont));
+            hcell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(hcell);
             double totalPrice = 0;
 
             // Добавление данных в таблицу
@@ -240,6 +243,15 @@ public class GeneratePdfReport{
                 table.addCell(cell);
 
                 cell = new PdfPCell(new Phrase(decimalFormat.format(item.getPrice()), headFont));
+                cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                cell.setPaddingRight(5);
+                table.addCell(cell);
+                String sd="Нет";
+                if(item.getDeleted()){
+                    sd = "Да";
+                }
+                cell = new PdfPCell(new Phrase(sd, headFont));
                 cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
                 cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
                 cell.setPaddingRight(5);
@@ -354,7 +366,7 @@ public class GeneratePdfReport{
                 cell.setHorizontalAlignment(Element.ALIGN_LEFT);
                 table.addCell(cell);
 
-                cell = new PdfPCell(new Phrase(transaction.getDate_created().toString(), headFont));
+                cell = new PdfPCell(new Phrase(f.format(transaction.getDate_created()), headFont));
                 cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
                 cell.setHorizontalAlignment(Element.ALIGN_CENTER);
                 table.addCell(cell);
@@ -392,6 +404,7 @@ public class GeneratePdfReport{
             document.add(new Paragraph("Средняя цена: " + decimalFormat.format(avgPrice / transactions.size()) + " руб.", titleFont));
             document.add(new Paragraph("Лучший оператор за период: " + operator,titleFont));
             document.add(new Paragraph("Лучшее количество продаж оператором за период: " + max, titleFont));
+
             document.add(new Paragraph("Дата: " + LocalDateTime.now().toLocalDate(), titleFont));
 
             document.close();

@@ -1,9 +1,15 @@
 package org.example.finassistant.controller;
 
+import org.example.finassistant.dto.DeleteResponseMessage;
+import org.example.finassistant.dto.TransactionDTO;
+import org.example.finassistant.exception.AcsessForbiddenException;
+import org.example.finassistant.exception.DataNotFoundException;
 import org.example.finassistant.model.Item;
 import org.example.finassistant.model.Message;
+import org.example.finassistant.model.Supply;
 import org.example.finassistant.model.Transaction;
 import org.example.finassistant.service.TransactionService;
+import org.example.finassistant.service.UserService;
 import org.example.finassistant.utils.GenerateCsvReport;
 import org.example.finassistant.utils.GenerateDocxReport;
 import org.example.finassistant.utils.GeneratePdfReport;
@@ -25,6 +31,8 @@ import java.util.List;
 public class TransactionController {
     @Autowired
     private TransactionService transactionService;
+    @Autowired
+    private UserService userService;
 
     @GetMapping(value = "/t/get_by_id")
     public Transaction getByID(@RequestParam(name = "id") Long id) {
@@ -38,17 +46,21 @@ public class TransactionController {
 
     @PostMapping(value = "/t/add")
     public Transaction addRow(@RequestBody Transaction t) {
+        validateUser(t);
         return transactionService.addRow(t);
     }
 
     @PatchMapping(value = "/t/edit")
     public Transaction editRow(@RequestBody Transaction t) {
+        validateUser(t);
         return transactionService.editTransaction(t);
     }
 
     @DeleteMapping(value = "/t/delete")
-    public Message delete(@RequestParam(name = "id") Long id) {
-        return new Message(transactionService.delete(id));
+    public DeleteResponseMessage delete(@RequestBody TransactionDTO transaction) {
+        validateUser(transaction);
+        System.out.println(transaction.getAuthor()+" # "+transaction.getId());
+        return new DeleteResponseMessage(transactionService.delete(transaction));
     }
 
     @RequestMapping(value = "/t/pdf_report", method = RequestMethod.GET,
@@ -61,7 +73,7 @@ public class TransactionController {
         ByteArrayInputStream bis = GeneratePdfReport.transactionReportPdf(items, startDate, endDate);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=ItemReport.pdf"); //attachment в заголовок
+        headers.add("Content-Disposition", "attachment; filename=TranasctionReport.pdf"); //attachment в заголовок
 
         return ResponseEntity
                 .ok()
@@ -79,7 +91,7 @@ public class TransactionController {
         ByteArrayInputStream bis = GenerateCsvReport.transactionReport(items, startDate, endDate);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=ItemReport.csv"); // attachment в заголовок
+        headers.add("Content-Disposition", "attachment; filename=TransactionReport.csv"); // attachment в заголовок
 
         return ResponseEntity
                 .ok()
@@ -97,7 +109,7 @@ public class TransactionController {
         ByteArrayInputStream bis = GenerateDocxReport.transactionReportDocx(items, startDate, endDate);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment; filename=ItemReport.docx"); // attachment в заголовок
+        headers.add("Content-Disposition", "attachment; filename=TransactionReport.docx"); // attachment в заголовок
 
         return ResponseEntity
                 .ok()
@@ -105,6 +117,19 @@ public class TransactionController {
                 .contentType(MediaType.APPLICATION_XML)
                 .body(new InputStreamResource(bis));
     }
-
+    private void validateUser(Transaction transaction) {
+        if (transaction.getAuthor() != null) {
+            userService.findByID(transaction.getAuthor().getId()).orElseThrow(() -> new AcsessForbiddenException("Need to signed in"));
+        }else {
+            throw new DataNotFoundException("Missing author");
+        }
+    }
+    private void validateUser(TransactionDTO transaction) {
+        if (transaction.getAuthor() != 0) {
+            userService.findByID(transaction.getAuthor()).orElseThrow(() -> new AcsessForbiddenException("Need to signed in"));
+        }else {
+            throw new DataNotFoundException("Missing author");
+        }
+    }
 
 }

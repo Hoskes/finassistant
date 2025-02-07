@@ -1,5 +1,6 @@
 package org.example.finassistant.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.finassistant.dto.NameCountDTO;
 import org.example.finassistant.exception.DataNotFoundException;
 import org.example.finassistant.model.Period; // Импортируйте ваше перечисление
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class ReportService {
     @Autowired
     private SupplyRepository supplyRepository;
@@ -87,12 +89,14 @@ public class ReportService {
         for (int i = 0; i < obj.size(); i++) {
             t.add(NameCountDTO.builder().name(obj.get(i)[0].toString()).count(Long.parseLong(obj.get(i)[1].toString())).build());
         }
+        log.info("# Данные о товарах собраны");
         return t.stream().toList();
     }
     public Double getTaxes(){
         Long pros = transactionRepository.getQuartalPros();
         Long cons = supplyRepository.getQuartalCons();
         Tax t= taxRepository.findByActualIsTrue();
+        log.info("# Данные о налогах собраны");
         if(t.getId()==1){
             return pros*0.01*t.getPersentage();
         } else if (t.getId()==2) {
@@ -107,6 +111,7 @@ public class ReportService {
         return transactionRepository.getQuartalPros();
     }
     public Double getProfit(){
+        log.info("# Данные о выручке собраны");
         return getPros()-getCons()-getTaxes();
     }
 

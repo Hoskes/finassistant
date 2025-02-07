@@ -2,9 +2,11 @@ package org.example.finassistant.controller;
 
 import org.example.finassistant.dto.DeleteResponseMessage;
 import org.example.finassistant.dto.SupplyDTO;
+import org.example.finassistant.exception.AcsessForbiddenException;
 import org.example.finassistant.exception.DataNotFoundException;
 import org.example.finassistant.model.Supply;
 import org.example.finassistant.service.SupplyService;
+import org.example.finassistant.service.UserService;
 import org.example.finassistant.utils.GenerateCsvReport;
 import org.example.finassistant.utils.GenerateDocxReport;
 import org.example.finassistant.utils.GeneratePdfReport;
@@ -29,6 +31,8 @@ import java.util.List;
 public class SupplyController {
     @Autowired
     private SupplyService supplyService;
+    @Autowired
+    private UserService userService;
     @GetMapping(value = "/supply/get_by_id")
     public SupplyDTO getById(@RequestParam(name = "id") Long id){
         System.out.println(id);
@@ -40,6 +44,7 @@ public class SupplyController {
     }
     @PostMapping(value = "/supply/add")
     public Supply addRow(@RequestBody Supply supply){
+        validateUser(supply);
         Supply s = supplyService.addSupply(supply);
         s.getAuthor().setPassword("");
         s.getAuthor().setEmail("");
@@ -48,6 +53,7 @@ public class SupplyController {
     }
     @PatchMapping(value = "/supply/edit")
     public Supply editRow(@RequestBody Supply supply){
+        validateUser(supply);
         Supply s = supplyService.editSupply(supply);
         s.getAuthor().setPassword("");
         s.getAuthor().setEmail("");
@@ -56,6 +62,7 @@ public class SupplyController {
     }
     @DeleteMapping(value = "/supply/delete")
     public DeleteResponseMessage deleteRow(@RequestBody Supply supply){
+        validateUser(supply);
         return new DeleteResponseMessage(supplyService.deleteSupply(supply));
     }
     @RequestMapping(value = "/supply/pdf_report", method = RequestMethod.GET,
@@ -114,6 +121,13 @@ public class SupplyController {
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_XML) // Убедитесь, что тип контента соответствует DOCX
                 .body(new InputStreamResource(bis));
+    }
+    private void validateUser(Supply supply) {
+        if (supply.getAuthor() != null) {
+            userService.findByID(supply.getAuthor().getId()).orElseThrow(() -> new AcsessForbiddenException("Need to signed in"));
+        }else {
+            throw new DataNotFoundException("Missing author");
+        }
     }
 
 }

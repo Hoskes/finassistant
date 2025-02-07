@@ -1,12 +1,15 @@
 package org.example.finassistant.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.example.finassistant.exception.AcsessForbiddenException;
 import org.example.finassistant.exception.DataNotFoundException;
 import org.example.finassistant.model.Message;
 import org.example.finassistant.model.User;
 import org.example.finassistant.service.UserService;
 import org.example.finassistant.utils.PasswordHasher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,14 +41,14 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
     @PostMapping("/login")
-    public Message login(@RequestBody User model) {
+    public ResponseEntity<Message> login(@RequestBody User model) {
         User u = userService.findByEmail(model.getEmail()).orElseThrow(()->new DataNotFoundException("Wrong user email"));
         System.out.println(u.getPassword());
         if(PasswordHasher.checkPassword(model.getPassword(),u.getPassword())){
             log.info("### Пользователь "+u.getName()+" зашел в систему");
-            return new Message(u.getId()+"");
+            return new ResponseEntity<>(new Message(u.getId()+""),HttpStatus.OK);
         }else {
-            return new Message("NOT OK");
+            return new ResponseEntity<>(new Message("Not OK"), HttpStatus.FORBIDDEN);
         }
     }
 

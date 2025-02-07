@@ -1,5 +1,6 @@
 package org.example.finassistant.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.finassistant.dto.ItemDTO;
 import org.example.finassistant.dto.SupplyDTO;
 import org.example.finassistant.exception.DataNotFoundException;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class ItemService {
     @Autowired
     private ItemRepository itemRepository;
@@ -25,7 +27,10 @@ public class ItemService {
         i.setTitle(item.getTitle());
         i.setDescription(item.getDescription());
         i.setPrice(item.getPrice());
-        return itemRepository.save(i);
+        i.setDeleted(false);
+        Item save = itemRepository.save(i);
+        log.info("Предмет №"+save.getId()+" создан");
+        return save;
     }
     public Item editItem(Item item){
         Item oldItem = itemRepository.findById(item.getId()).orElseThrow(() -> new DataNotFoundException("No Data Founded"));
@@ -38,16 +43,19 @@ public class ItemService {
         if(item.getPrice()!=0) {
             oldItem.setPrice(item.getPrice());
         }
+        log.info("# Предмет №"+oldItem.getId()+" был изменен");
         return itemRepository.saveAndFlush(oldItem);
     }
     public String deleteItem(Item item){
         Item s = itemRepository.findById(item.getId()).orElseThrow(()->new DataNotFoundException("No Data founded"));
-        itemRepository.delete(s);
+        s.setDeleted(true);
+        itemRepository.saveAndFlush(s);
+        log.info("# Предмет №"+item.getId() +" был удален!");
         return "Object deleted";
     }
 
     public List<Item> getAll() {
-        return itemRepository.findAll();
+        return itemRepository.getAllByDeletedIsFalse();
     }
 
     public ItemDTO getById(Long id) {

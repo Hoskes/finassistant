@@ -22,4 +22,5 @@ public interface SupplyRepository extends JpaRepository<Supply,Long> {
             "AND s.date_created < DATE_TRUNC('quarter', CURRENT_DATE) + INTERVAL '3 months'",
             nativeQuery = true)
     Long getQuartalCons();
+
 }
